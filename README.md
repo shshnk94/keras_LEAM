@@ -14,27 +14,6 @@ This repository contains source code necessary to reproduce the results presente
 ```
 
 
-
-Comparison Illustration of proposed **LEAM** with traditional methods for text sequence representations
-
-Traditional Method           |  LEAM: Label Embedding Attentive Model
-:-------------------------:|:-------------------------:
-![](/plots/schemes/scheme_a.png) |  ![](/plots/schemes/scheme_b.png)
-Directly aggregating word embedding **V** for text sequence representation **z** | We leverage the “compatibility” **G** between embedded words **V** and labels **C** to derive the attention score **β** for improved **z**.
-
-
-
-
-## Contents
-There are four steps to use this codebase to reproduce the results in the paper.
-
-1. [Dependencies](#dependencies)
-2. [Prepare datasets](#prepare-datasets)
-3. [Training](#training)
-    1. Training on standard dataset
-    2. Training on your own dataset
-4. [Reproduce paper figure results](#reproduce-paper-figure-results)
-
 ## Dependencies
 
-This code is based on Python 2.7, with the main dependencies being [TensorFlow==1.7.0](https://www.tensorflow.org/) and [Keras==2.1.5](https://keras.io/). Additional dependencies for running experiments are: `numpy`, `cPickle`, `scipy`, `math`, `gensim`. 
+This code is based on Python 2.7, with the main dependencies being [TensorFlow==1.7.0](https://www.tensorflow.org/) and [Keras==2.1.5](https://keras.io/). 
