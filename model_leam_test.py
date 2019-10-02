@@ -15,8 +15,8 @@ BATCHSIZE=16
 sentence_size = 15
 maxlen=11
 embedding_size =300
-token_size = 59225
-class_num = 20
+token_size = 856701 # No. words in vocabulary obtained from the corpus
+class_num = 20 # No. class labels
 VECTOR_DIR = 'dataset/en_vector_google.pkl'
 
 from model import *
@@ -125,22 +125,32 @@ def getdata():
     return train_x,train_y,test_x,test_y,class_all
 
 def train():
-    #sentence
+
+    # Read word embeddings from VECTOR_DIR
     f = open(VECTOR_DIR, 'rb')
     word_vector = np.array(pickle.load(f))
     f.close()
+	
+	# f0 - Where you convert the text sequence into their respective embeddings.
     sentence_inputs = Input(shape=(maxlen,), dtype='int32')
+	# FIXME: Not sure if trainable=false
     sentence_embeddings = Embedding(token_size, embedding_size,mask_zero=False,weights=[word_vector],trainable=False)(sentence_inputs)
+
     sentence_attn = AttentionLayer()(sentence_embeddings)
     sentence_encoder = Model(sentence_inputs,sentence_attn)
 
     token_inputs = Input(shape=(sentence_size,maxlen,), dtype='int32')
     label_inputs = Input((class_num,), dtype='int32')
+
+	# Obtain the class embedding C (K X P) = (20 X 300)
     class_all_inputs = Input((class_num,), dtype='int32')
     class_all_embeddings = Embedding(class_num, embedding_size,mask_zero=False)(class_all_inputs)
     token_encoder = TimeDistributed(sentence_encoder)(token_inputs)
-
+	
+	# f1 layer which outputs 'z' (average of the word embeddings weighted by the attentions score).
     doc_leam = LEAM()([token_encoder,label_inputs,token_inputs,class_all_embeddings])
+
+	# f2 layer (output) where you get the class probability after taking the sentence embedding.
     output = Dense(class_num,activation='softmax')(doc_leam)
 
     model = Model(input=[token_inputs,label_inputs,class_all_inputs], output=[output])
