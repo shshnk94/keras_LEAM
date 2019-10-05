@@ -77,6 +77,7 @@ class AttentionLayer(Layer):
                                  shape=(input_shape[1],),
                                  initializer='uniform',
                                  trainable=True)
+        print("Attention layer weights and bias shapes: ", K.shape(self.W), K.shape(self.b))
         super(AttentionLayer, self).build(input_shape)
 
     def call(self, inputs):
