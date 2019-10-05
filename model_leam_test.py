@@ -115,11 +115,11 @@ def getdata():
     import pickle
     train_set = open('dataset/enDataTrain.pkl','rb')
     train_x = pickle.load(train_set)
-	print("Training set: ", len(train_text))
+    print("Training set: ", len(train_text))
     train_y = np.array(pickle.load(train_set))
 	
     test_set = open('dataset/enDataTest.pkl','rb')
-	print("Test set: ", len(test_text))
+    print("Test set: ", len(test_text))
     test_x = pickle.load(test_set)
     test_y = np.array(pickle.load(test_set))
 
@@ -134,10 +134,11 @@ def train():
     word_vector = np.array(pickle.load(f))
     f.close()
 	
-	# f0 - Where you convert the text sequence into their respective embeddings.
+    # f0 - Where you convert the text sequence into their respective embeddings.
     sentence_inputs = Input(shape=(maxlen,), dtype='int32')
-	# FIXME: Not sure if trainable=false
+    print("sentence_inputs, each of size max_len: ", K.int_shape(sentence_inputs))
     sentence_embeddings = Embedding(token_size, embedding_size,mask_zero=False,weights=[word_vector],trainable=False)(sentence_inputs)
+    print("sentence_embeddings, each of shape (max_len, embedding_size): ", K.int_shape(sentence_embeddings))
 
     sentence_attn = AttentionLayer()(sentence_embeddings)
     sentence_encoder = Model(sentence_inputs,sentence_attn)
