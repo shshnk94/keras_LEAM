@@ -11,12 +11,12 @@ from keras.models import Model
 from keras.layers import *
 
 #en
-BATCHSIZE=16
+BATCHSIZE = 16
 sentence_size = 15
-maxlen=11
-embedding_size =300
+maxlen = 146 # Length of the sentence with maximum length in the dataset
+embedding_size = 300
 token_size = 856701 # No. words in vocabulary obtained from the corpus
-class_num = 20 # No. class labels
+class_num = 10 # No. class labels as per the original LEAM codebase
 VECTOR_DIR = 'dataset/en_vector_google.pkl'
 
 from model import *
@@ -42,7 +42,7 @@ class Options(object):
         self.ngram = 55
         self.H_dis = 300
 
-
+    #Iterating along the class attributes
     def __iter__(self):
         for attr, value in self.__dict__.iteritems():
             yield attr, value
@@ -115,8 +115,11 @@ def getdata():
     import pickle
     train_set = open('dataset/enDataTrain.pkl','rb')
     train_x = pickle.load(train_set)
+	print("Training set: ", len(train_text))
     train_y = np.array(pickle.load(train_set))
+	
     test_set = open('dataset/enDataTest.pkl','rb')
+	print("Test set: ", len(test_text))
     test_x = pickle.load(test_set)
     test_y = np.array(pickle.load(test_set))
 
