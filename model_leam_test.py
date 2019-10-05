@@ -116,12 +116,12 @@ def getdata():
     import pickle
     train_set = open('dataset/enDataTrain.pkl','rb')
     train_x = pickle.load(train_set)
-    print("Training set: ", len(train_text))
+    print("Training set: ", len(train_x))
     train_y = np.array(pickle.load(train_set))
 	
     test_set = open('dataset/enDataTest.pkl','rb')
-    print("Test set: ", len(test_text))
     test_x = pickle.load(test_set)
+    print("Test set: ", len(test_x))
     test_y = np.array(pickle.load(test_set))
 
     class_all = np.array(range(0,class_num))
@@ -141,21 +141,23 @@ def train():
     sentence_embeddings = Embedding(token_size, embedding_size,mask_zero=False,weights=[word_vector],trainable=False)(sentence_inputs)
     print("sentence_embeddings, each of shape (max_len, embedding_size): ", K.int_shape(sentence_embeddings))
 
+    # Produces attention values for each token in a sequence (Not mentioned in the original paper)
     sentence_attn = AttentionLayer()(sentence_embeddings)
     sentence_encoder = Model(sentence_inputs,sentence_attn)
 
     token_inputs = Input(shape=(sentence_size,maxlen,), dtype='int32')
     label_inputs = Input((class_num,), dtype='int32')
 
-	# Obtain the class embedding C (K X P) = (20 X 300)
+    # Obtain the class embedding C (K X P) = (20 X 300)
     class_all_inputs = Input((class_num,), dtype='int32')
     class_all_embeddings = Embedding(class_num, embedding_size,mask_zero=False)(class_all_inputs)
+
     token_encoder = TimeDistributed(sentence_encoder)(token_inputs)
 	
-	# f1 layer which outputs 'z' (average of the word embeddings weighted by the attentions score).
+    # f1 layer which outputs 'z' (average of the word embeddings weighted by the attentions score).
     doc_leam = LEAM()([token_encoder,label_inputs,token_inputs,class_all_embeddings])
 
-	# f2 layer (output) where you get the class probability after taking the sentence embedding.
+    # f2 layer (output) where you get the class probability after taking the sentence embedding.
     output = Dense(class_num,activation='softmax')(doc_leam)
 
     model = Model(input=[token_inputs,label_inputs,class_all_inputs], output=[output])
