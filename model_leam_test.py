@@ -4,6 +4,7 @@ from keras.preprocessing import sequence
 
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
+from keras.utils.vis_utils import plot_model
 import pickle
 from keras import backend as K
 import tensorflow as tf
@@ -161,6 +162,7 @@ def train():
     output = Dense(class_num,activation='softmax')(doc_leam)
 
     model = Model(input=[token_inputs,label_inputs,class_all_inputs], output=[output])
+    plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 
     model.compile(loss='categorical_crossentropy',
                   optimizer='adam',
