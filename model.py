@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import keras
 from tensorflow.contrib import layers
 
 def embedding(features, opt, prefix='', is_reuse=None):
@@ -60,8 +61,10 @@ def att_emb_ngram_encoder_cnn(x_emb, x_mask, W_class, W_class_tran, opt):
     x_mask = tf.expand_dims(x_mask, axis=-1) # b * s * 1
     x_emb_0 = tf.squeeze(x_emb,axis=-1) # b * s * e
     # x_emb_1 = tf.multiply(x_emb_0, x_mask) # b * s * e
-
-    H = tf.contrib.layers.conv2d(x_emb_0, num_outputs=opt.embed_size,kernel_size=[10], padding='SAME',activation_fn=tf.nn.relu) #b * s *  c
+    
+    layer = tf.layers.Conv1D(filters=opt.embed_size,kernel_size=[10], padding='SAME',activation=tf.nn.relu) #b * s *  c
+    H = layer.apply(x_emb_0)
+    #H = tf.contrib.layers.conv2d(x_emb_0, num_outputs=opt.embed_size,kernel_size=[10], padding='SAME',activation_fn=tf.nn.relu) #b * s *  c
 
     G = tf.contrib.keras.backend.batch_dot(H, W_class_tran) # b * s * c
     Att_v_max = partial_softmax(G, x_mask, 1, 'Att_v_max') # b * s * c

@@ -1,12 +1,15 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.python import pywrap_tensorflow
+from keras.utils import to_categorical
 import sys
 import os
 
 def prepare_data_for_emb(seqs_x, opt):
+
     maxlen = opt.maxlen
     lengths_x = [len(s) for s in seqs_x]
+
     if maxlen != None:
         new_seqs_x = []
         new_lengths_x = []
@@ -21,16 +24,15 @@ def prepare_data_for_emb(seqs_x, opt):
         seqs_x = new_seqs_x
 
         if len(lengths_x) < 1:
-            return None, None
+            return None
 
     n_samples = len(seqs_x)
     maxlen_x = np.max(lengths_x)
     x = np.zeros((n_samples, maxlen)).astype('int32')
-    x_mask = np.zeros((n_samples, maxlen)).astype('float32')
     for idx, s_x in enumerate(seqs_x):
         x[idx, :lengths_x[idx]] = s_x
-        x_mask[idx, :lengths_x[idx]] = 1. # change to remove the real END token
-    return x, x_mask
+
+    return x
 
 def restore_from_save(t_vars, sess, opt):
     save_keys = tensors_key_in_file(opt.save_path)
@@ -91,3 +93,16 @@ def load_class_embedding( wordtoidx, opt):
     value_mean = [ np.mean(l,0)  for l in value_list]
     return np.asarray(value_mean)
 
+def datagen(handle, opt):
+
+    #FIXME: Take care of padding in preprocessing. 
+    x, y = np.zeros((opt.batch_size, opt.maxlen)), np.zeros(opt.batch_size)
+    class_all = np.repeat(np.arange(opt.class_num)[np.newaxis,:], opt.batch_size, axis=0)
+
+    while True:
+        
+        indices = np.random.choice(np.arange(handle['x'].shape[0]), opt.batch_size)
+        for i, index in enumerate(indices):
+            x[i], y[i] = handle['x'][index], handle['y'][index]
+        
+        yield [x, class_all], to_categorical(y)
