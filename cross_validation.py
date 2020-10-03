@@ -27,14 +27,14 @@ def run_script(params, fold):
           ' --epochs ' + params['epochs'] +
           ' --lr ' + params['lr'] +
           ' --maxlen ' + args.maxlen +
-          ' --mode train')# + ' &')
+          ' --mode train' + ' &')
 
     os.system(cmd)
 
 #Hyperparameters
 hyperparameters = {'epochs': ['100'],
-                   'lr': ['3e-4']}#, '3e-4']}
+                   'lr': ['1e-4']}#, '3e-4']}
 
 for params in ParameterGrid(hyperparameters):
-    for fold in range(1): #Hard coded values of fold
+    for fold in range(5): #Hard coded values of fold
         run_script(params, fold)

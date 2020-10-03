@@ -158,7 +158,7 @@ def train():
     # f0 - Where you convert the text sequence into their respective embeddings.
     sentence_inputs = Input(shape=(args.maxlen,), dtype='int32')
     print("sentence_inputs, each of size max_len: ", K.int_shape(sentence_inputs))
-    sentence_embeddings = Embedding(args.token_size, args.embedding_size,mask_zero=False,weights=[word_vector],trainable=False)(sentence_inputs)
+    sentence_embeddings = Embedding(args.token_size + 1, args.embedding_size, mask_zero=False, weights=[word_vector], trainable=False)(sentence_inputs)
     print("sentence_embeddings, each of shape (max_len, embedding_size): ", K.int_shape(sentence_embeddings))
 
     # Calculates the attention values \beta and then the sentence encoder - z.

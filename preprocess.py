@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pickle as pkl
 import h5py
 import argparse
@@ -5,12 +6,14 @@ import numpy as np
 import os
 from sklearn.model_selection import KFold
 from keras.preprocessing.sequence import pad_sequences
+from keras.utils import to_categorical
 
 parser = argparse.ArgumentParser(description='Preprocess pickle files into dataset')
 
 parser.add_argument('--mode', type=str, help='cross validation or 1 fold validation')
-parser.add_argument('--batch_size', type=int, help='sizes of chunks stored and read')
+#parser.add_argument('--batch_size', type=int, help='sizes of chunks stored and read')
 parser.add_argument('--data_path', type=str, help='pickle file with data')
+parser.add_argument('--emb_path', type=str, help='path to the file of glove embeddings')
 parser.add_argument('--save_path', type=str, help='folder to store the dataset')
 
 
@@ -38,10 +41,21 @@ max_len = max([len(i) for i in test_text]) if max([len(i) for i in test_text]) >
 max_len = max([len(i) for i in val_text]) if max([len(i) for i in val_text]) > max_len else max_len
 print("Maximum sentence length: ", max_len)
 
+#Add padding to vocabulary
+reverse_dictionary['PAD'] = len(dictionary)
+dictionary[len(dictionary)] = 'PAD'
+with open(args.emb_path, 'rb') as f:
+    embeddings = pkl.load(f)
+    embeddings = np.vstack((embeddings, np.zeros((1, embeddings.shape[1]))))
+
+with open(os.path.join(args.data_path.split('/')[0], 'embeddings.pkl'), 'wb') as f:
+    pkl.dump(embeddings, f)    
+
 def store(x, y, path, mode):
     
-    x = pad_sequences(x, maxlen=max_len, dtype="int32", padding='post', value=0) 
-    y = np.array(y)
+    #Since the vocabulary is indexed from 0, padding index is moved to length_of_vocabulary. 
+    x = pad_sequences(x, maxlen=max_len, dtype="int32", padding='post', value=reverse_dictionary['PAD']) 
+    y = to_categorical(np.array(y))
 
     with h5py.File(os.path.join(path, mode + '.h5'), 'w') as handle:
         handle.create_dataset('x', data=x)

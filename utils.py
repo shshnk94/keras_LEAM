@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.python import pywrap_tensorflow
-from keras.utils import to_categorical
 import sys
 import os
 
@@ -95,8 +94,7 @@ def load_class_embedding( wordtoidx, opt):
 
 def datagen(handle, opt):
 
-    #FIXME: Take care of padding in preprocessing. 
-    x, y = np.zeros((opt.batch_size, opt.maxlen)), np.zeros(opt.batch_size)
+    x, y = np.zeros((opt.batch_size, opt.maxlen)), np.zeros((opt.batch_size, opt.class_num))
     class_all = np.repeat(np.arange(opt.class_num)[np.newaxis,:], opt.batch_size, axis=0)
 
     while True:
@@ -105,4 +103,4 @@ def datagen(handle, opt):
         for i, index in enumerate(indices):
             x[i], y[i] = handle['x'][index], handle['y'][index]
         
-        yield [x, class_all], to_categorical(y)
+        yield [x, class_all], y
