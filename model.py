@@ -40,6 +40,7 @@ def embedding_class(features, opt, prefix='', is_reuse=None):
     return word_vectors, W
 
 def att_emb_ngram_encoder_maxout(x_emb, x_mask, W_class, W_class_tran, opt):
+
     x_mask = tf.expand_dims(x_mask, axis=-1) # b * s * 1
     x_emb_0 = tf.squeeze(x_emb,) # b * s * e
     x_emb_1 = tf.multiply(x_emb_0, x_mask) # b * s * e
@@ -48,7 +49,9 @@ def att_emb_ngram_encoder_maxout(x_emb, x_mask, W_class, W_class_tran, opt):
     W_class_norm = tf.nn.l2_normalize(W_class_tran, dim = 0) # e * c
     G = tf.contrib.keras.backend.dot(x_emb_norm, W_class_norm) # b * s * c
     x_full_emb = x_emb_0
-    Att_v = tf.contrib.layers.conv2d(G, num_outputs=opt.num_class,kernel_size=[opt.ngram], padding='SAME',activation_fn=tf.nn.relu) #b * s *  c
+    #Att_v = tf.contrib.layers.conv2d(G, num_outputs=opt.num_class,kernel_size=[opt.ngram], padding='SAME',activation_fn=tf.nn.relu) #b * s *  c
+    layer = tf.layers.Conv1D(filters=opt.class_num, kernel_size=[opt.ngram], padding='SAME',activation=tf.nn.relu) #b * s *  c
+    Att_v = layer.apply(G)
 
     Att_v = tf.reduce_max(Att_v, axis=-1, keep_dims=True)
     Att_v_max = partial_softmax(Att_v, x_mask, 1, 'Att_v_max') # b * s * 1

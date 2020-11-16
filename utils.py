@@ -102,5 +102,5 @@ def datagen(handle, opt):
         indices = np.random.choice(np.arange(handle['x'].shape[0]), opt.batch_size)
         for i, index in enumerate(indices):
             x[i], y[i] = handle['x'][index], handle['y'][index]
-        
+
         yield [x, class_all], y

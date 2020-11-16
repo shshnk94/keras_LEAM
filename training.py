@@ -72,14 +72,19 @@ def emb_classifier(x_emb, x_mask, W_class, dropout=0.5, opt=opt):
     W_class_tran = tf.transpose(W_class, [0,2,1]) # b* e * c
     x_emb = tf.expand_dims(x_emb, 3)  # b * s * e * 1
     H_enc = att_emb_ngram_encoder_cnn(x_emb, x_mask, W_class, W_class_tran, opt)
+    #H_enc = att_emb_ngram_encoder_maxout(x_emb, x_mask, W_class, W_class_tran, opt)
+    #H_enc = tf.squeeze(H_enc)
+    #logits = discriminator_2layer(H_enc, opt, dropout, prefix='classify_', num_outputs=opt.class_num, is_reuse=False)  
 
     H_enc_list= tf.unstack(H_enc, axis=-1)
-    # print(H_enc_list.shape)
+
     logits_list = []
     for i, ih in enumerate(H_enc_list):
-        logits_list.append(discriminator_0layer(ih, opt, dropout, prefix='classify_{}'.format(i), num_outputs=1, is_reuse=False) )
+        #logits_list.append(discriminator_0layer(ih, opt, dropout, prefix='classify_{}'.format(i), num_outputs=1, is_reuse=False) )
+        logits_list.append(discriminator_2layer(ih, opt, dropout, prefix='classify_{}'.format(i), num_outputs=1, is_reuse=False) )
 
     logits = tf.concat(logits_list,-1)
+
     return logits
 
 class AttentionLayer(Layer):
@@ -191,7 +196,6 @@ def train():
 
     #train_x, train_y, test_x, test_y, class_all = getdata(args.mode)
     train_handle, valid_handle = getgen(args.mode)
-    
     history = model.fit_generator(datagen(train_handle, opt),
                                   epochs=args.epochs,
                                   steps_per_epoch=np.ceil(train_handle['x'].shape[0] / args.batch_size),
@@ -199,8 +203,9 @@ def train():
                                   validation_steps=np.ceil(valid_handle['x'].shape[0] / args.batch_size))
     
     #Save the cross_validation results
-    args.save_path = os.path.join(args.save_path, 'e_{}_lr{}'.format(args.epochs, args.lr))
-    args.save_path = os.path.join(args.save_path, 'fold{}'.format(args.fold)) if args.fold != '' else args.save_path
+    if args.fold != '':
+        args.save_path = os.path.join(args.save_path, 'e_{}_lr{}'.format(args.epochs, args.lr))
+        args.save_path = os.path.join(args.save_path, 'fold{}'.format(args.fold))
 
     if not os.path.isdir(args.save_path):
         os.makedirs(args.save_path)
@@ -215,9 +220,7 @@ def test():
     #test_x, test_y, class_all = getdata(args.mode)
     test_handle = getgen(args.mode)
     model = keras.models.load_model(os.path.join(args.save_path, 'baseline.h5'), custom_objects={'LEAM': LEAM})
-    result = model.evaluate([test_x, test_y, np.repeat(class_all[np.newaxis,:],len(test_x),axis=0)],
-                            test_y,
-                            batch_size=args.batch_size) 
+    result = model.evaluate_generator(datagen(test_handle, opt), steps=np.ceil(test_handle['x'].shape[0] / args.batch_size)) 
 
     print("Result on the held-out set: ", result)
 
@@ -225,7 +228,7 @@ if __name__ == '__main__':
 
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True 
-    config.log_device_placement = True
+    #config.log_device_placement = True
     sess = tf.Session(config=config)
     set_session(sess)
 
